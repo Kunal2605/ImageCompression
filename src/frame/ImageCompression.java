@@ -3,7 +3,19 @@ package frame;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Iterator;
 
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
@@ -78,6 +90,44 @@ public class ImageCompression extends JFrame implements ActionListener{
 
 		
 	}
+	public void imageCompressionMethood(String srcPath,String desPath)
+	{
+		File folder = new File(srcPath);
+		String temp ="";
+		try {
+			for(final File fileEntry : folder.listFiles())
+			{
+				if(fileEntry.isFile())
+				{
+					temp = fileEntry.getName();
+					File imageFile = new File(srcPath+"/"+temp);
+					File compressedImageFile = new File(desPath+"/"+temp);
+					InputStream inputStream = new FileInputStream(imageFile);
+					OutputStream outputstream = new FileOutputStream(compressedImageFile);
+					float imageQuality = Float.valueOf(qty.getSelectedItem().toString());
+					BufferedImage buffImage = ImageIO.read(inputStream);
+					Iterator<ImageWriter> imageWriters = ImageIO.getImageWritersByFormatName("jpg");
+					if(!imageWriters.hasNext())
+					{
+						throw new IllegalStateException("Writers not Found!!");
+					}
+					ImageWriter imageWriter = (ImageWriter) imageWriters.next();
+					ImageOutputStream imageOutputStream = ImageIO.createImageOutputStream(outputstream);
+					imageWriter.setOutput(imageOutputStream);
+					ImageWriteParam iwp = imageWriter.getDefaultWriteParam();
+					iwp.setCompressionMode(iwp.MODE_EXPLICIT);
+					iwp.setCompressionQuality(imageQuality);
+					imageWriter.write(null, new IIOImage(buffImage, null, null), iwp);
+					inputStream.close();
+					outputstream.close();
+					imageOutputStream.close();
+					imageWriter.dispose();
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
@@ -106,7 +156,7 @@ public class ImageCompression extends JFrame implements ActionListener{
 			
 		}else if(cmd.equals("Convert image"))
 		{
-			
+			imageCompressionMethood(file_src.getSelectedFile().toString(),file_dest.getSelectedFile().toString());
 		}
 		
 	}
